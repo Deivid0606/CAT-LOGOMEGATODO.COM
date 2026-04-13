@@ -142,6 +142,12 @@
     .badge-accent{background:var(--gradient-accent)}
     .badge-stock{background:linear-gradient(135deg,#f59e0b,#ef4444)}
     .badge-off{background:linear-gradient(135deg,#16a34a,#22c55e)}
+    .badge-bestseller{background:linear-gradient(135deg,#f59e0b,#dc2626);animation:pulse 2s infinite}
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
 
     .share-btn-elegant{
       position:absolute;top:14px;left:14px;
@@ -204,6 +210,64 @@
     .btn-whatsapp-pro:active{transform:translateY(-1px) scale(.98)}
     .btn-whatsapp-pro i{font-size:1.45rem;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.18))}
 
+    /* SECCIÓN MÁS VENDIDOS */
+    .best-seller-section {
+      animation: fadeSlideUp 0.6s ease-out;
+      margin-bottom: 48px;
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .best-seller-section .product-card-elegant {
+      border: 2px solid transparent;
+      background: linear-gradient(white, white) padding-box,
+                  linear-gradient(135deg, #f59e0b, #dc2626, #f59e0b, #22c55e) border-box;
+      animation: borderGlow 4s ease infinite;
+      background-size: 300% 200%;
+    }
+
+    @keyframes borderGlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .section-header .accent-bar {
+      width: 6px;
+      height: 42px;
+      border-radius: 6px;
+    }
+    .section-header h2 {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-header .divider {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, #e5e7eb, transparent);
+    }
+
+    /* FOOTER */
     .footer-elegant{
       text-align:center;padding:40px 0;color:var(--gray);
       margin-top:60px;border-top:1px solid var(--border)
@@ -646,6 +710,7 @@
       .brand-logo-one{height:76px;max-width:210px}
       .header-content{padding:36px 18px}
       .cart-floating{bottom:18px;right:18px}
+      .section-header h2{font-size:1.4rem}
     }
     @media(max-width:480px){
       .products-grid{grid-template-columns:1fr}
@@ -656,6 +721,7 @@
       .landing-price{font-size:2.3rem}
       .benefits-box,.landing-description,.landing-features{padding:18px}
       .modal-content-elegant{max-height:94vh}
+      .section-header h2{font-size:1.2rem}
     }
     @media(min-width:900px){
       .modal-elegant{align-items:center;padding:20px}
@@ -936,6 +1002,14 @@
       standard: { label: "ESTÁNDAR (2-4 días) - Gratis", cost: 0 },
       express:  { label: "EXPRESS 24 horas - 10.000 Gs (Solo Asunción y Central)", cost: 10000 }
     };
+
+    // SKUs de productos más vendidos (aparecerán primero en sección destacada)
+    const BEST_SELLER_SKUS = [
+      "PLANTILLA ORTOPÉDICA | ORTOPIEX 5D® - 001",
+      "SOPORTE ANTIVIBRACIÓN Y NIVELADORAS X 4 - 005",
+      "Afilador de Cuchillos y Tijeras🔪✂️ - 007",
+      "PROCESADOR DE ALIMENTOS - PREMIUM RAF PRO® - 040"
+    ];
 
     // === PRODUCTOS ===
     const products = [
@@ -1478,7 +1552,6 @@
         description: "Cinta facial V-Shaped para lifting facial instantáneo. Mejora contorno facial y reduce apariencia de arrugas.",
         features: ["Material hipoalergénico","Adhesivo médico","Invisible bajo maquillaje","Uso diario/noche","Paquete 30 unidades","Instrucciones aplicación"]
       },
-      // ✅ NUEVO PRODUCTO AGREGADO
       {
         title: "PROCESADOR DE ALIMENTOS - PREMIUM RAF PRO®",
         sku: "PROCESADOR DE ALIMENTOS - PREMIUM RAF PRO® - 040",
@@ -1521,6 +1594,52 @@
       return Number.isFinite(s) && s > 0 ? s : null;
     }
 
+    // Función auxiliar para crear tarjetas de producto
+    function createProductCard(product, index){
+      const card = document.createElement("div");
+      card.className = "product-card-elegant";
+      const stock = safeStock(product);
+      const isBestSeller = BEST_SELLER_SKUS.includes(product.sku);
+      
+      card.innerHTML = `
+        <button class="share-btn-elegant" title="Compartir" onclick="shareProduct(${index})">
+          <i class="fas fa-share-alt"></i>
+        </button>
+
+        <div class="product-badges">
+          ${
+            product.isPlantilla
+              ? `<div class="badge badge-accent">PLANTILLA</div>`
+              : `<div class="badge badge-primary">${(product.category || "producto").toUpperCase()}</div>`
+          }
+          ${stock ? `<div class="badge badge-stock">Últimas ${stock} u.</div>` : ``}
+          <div class="badge badge-off">10% OFF 2+</div>
+          ${isBestSeller ? `<div class="badge badge-bestseller">⭐ MÁS VENDIDO</div>` : ``}
+        </div>
+
+        <div class="product-image-container">
+          <img src="${product.image_url}" alt="${product.title}" class="product-image"
+               onerror="this.src='https://via.placeholder.com/400x300?text=Producto'">
+        </div>
+
+        <div class="product-info-elegant">
+          <h3 class="product-title">${product.title}</h3>
+          <p class="product-sku">${product.sku}</p>
+          <div class="product-price">${formatPrice(product.price)}</div>
+
+          <div style="margin-top:10px;">
+            <button class="btn-view-details" onclick="viewProduct(${index})">
+              <i class="fas fa-eye"></i> Ver Producto
+            </button>
+            <button class="btn-whatsapp-pro" onclick="buyProduct(${index})">
+              <i class="fab fa-whatsapp"></i> COMPRAR POR WHATSAPP
+            </button>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
     function getBenefitsFromProduct(p){
       if (p.isPlantilla){
         return [
@@ -1538,7 +1657,7 @@
       ];
     }
 
-    // === RENDER CATÁLOGO ===
+    // === RENDER CATÁLOGO CON SECCIÓN MÁS VENDIDOS ===
     function loadProducts(){
       const grid = document.getElementById("productsGrid");
       const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
@@ -1546,7 +1665,8 @@
 
       grid.innerHTML = "";
 
-      const filtered = products.filter(p=>{
+      // Filtrar productos según búsqueda y categoría
+      let filtered = products.filter(p=>{
         const matchesSearch =
           !searchTerm ||
           p.title.toLowerCase().includes(searchTerm) ||
@@ -1557,52 +1677,90 @@
         return matchesSearch && matchesFilter;
       });
 
+      // Separar los más vendidos del resto
+      const bestSellers = [];
+      const restProducts = [];
+
+      filtered.forEach(product => {
+        if (BEST_SELLER_SKUS.includes(product.sku)) {
+          bestSellers.push(product);
+        } else {
+          restProducts.push(product);
+        }
+      });
+
       document.getElementById("productCounter").textContent =
         `Mostrando ${filtered.length} de ${products.length} productos`;
 
-      filtered.forEach((product) => {
-        const index = products.indexOf(product);
-        const stock = safeStock(product);
-
-        const card = document.createElement("div");
-        card.className = "product-card-elegant";
-        card.innerHTML = `
-          <button class="share-btn-elegant" title="Compartir" onclick="shareProduct(${index})">
-            <i class="fas fa-share-alt"></i>
-          </button>
-
-          <div class="product-badges">
-            ${
-              product.isPlantilla
-                ? `<div class="badge badge-accent">PLANTILLA</div>`
-                : `<div class="badge badge-primary">${(product.category || "producto").toUpperCase()}</div>`
-            }
-            ${stock ? `<div class="badge badge-stock">Últimas ${stock} u.</div>` : ``}
-            <div class="badge badge-off">10% OFF 2+</div>
+      // ========== SECCIÓN MÁS VENDIDOS ==========
+      const showBestSellerSection = bestSellers.length > 0 && !searchTerm && activeFilter === "all";
+      
+      if (showBestSellerSection) {
+        const bestSellerSection = document.createElement("div");
+        bestSellerSection.className = "best-seller-section";
+        
+        bestSellerSection.innerHTML = `
+          <div class="section-header">
+            <div class="accent-bar" style="background: linear-gradient(135deg, #f59e0b, #dc2626);"></div>
+            <h2>
+              <i class="fas fa-crown" style="color: #f59e0b;"></i> 
+              Los Más Vendidos 🔥
+            </h2>
+            <div class="divider"></div>
           </div>
+          <div class="products-grid" id="bestSellersGrid"></div>
+        `;
+        
+        grid.appendChild(bestSellerSection);
+        
+        const bestGrid = bestSellerSection.querySelector("#bestSellersGrid");
+        bestSellers.forEach((product) => {
+          const index = products.findIndex(p => p.sku === product.sku);
+          const card = createProductCard(product, index);
+          bestGrid.appendChild(card);
+        });
+      }
 
-          <div class="product-image-container">
-            <img src="${product.image_url}" alt="${product.title}" class="product-image"
-                 onerror="this.src='https://via.placeholder.com/400x300?text=Producto'">
-          </div>
-
-          <div class="product-info-elegant">
-            <h3 class="product-title">${product.title}</h3>
-            <p class="product-sku">${product.sku}</p>
-            <div class="product-price">${formatPrice(product.price)}</div>
-
-            <div style="margin-top:10px;">
-              <button class="btn-view-details" onclick="viewProduct(${index})">
-                <i class="fas fa-eye"></i> Ver Producto
-              </button>
-              <button class="btn-whatsapp-pro" onclick="buyProduct(${index})">
-                <i class="fab fa-whatsapp"></i> COMPRAR POR WHATSAPP
-              </button>
+      // ========== RESTO DE PRODUCTOS ==========
+      if (restProducts.length > 0) {
+        // Título "Otros Productos" solo si hay más vendidos visibles
+        if (showBestSellerSection) {
+          const restTitle = document.createElement("div");
+          restTitle.style.marginTop = "30px";
+          restTitle.style.marginBottom = "20px";
+          restTitle.innerHTML = `
+            <div class="section-header">
+              <div class="accent-bar" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);"></div>
+              <h2>
+                <i class="fas fa-store"></i> Todos los Productos
+              </h2>
+              <div class="divider"></div>
             </div>
+          `;
+          grid.appendChild(restTitle);
+        }
+        
+        const restGrid = document.createElement("div");
+        restGrid.className = "products-grid";
+        grid.appendChild(restGrid);
+        
+        restProducts.forEach((product) => {
+          const index = products.findIndex(p => p.sku === product.sku);
+          const card = createProductCard(product, index);
+          restGrid.appendChild(card);
+        });
+      }
+      
+      // Si no hay resultados
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="text-align: center; padding: 60px; background: #fff; border-radius: 20px;">
+            <i class="fas fa-search" style="font-size: 48px; color: #9ca3af; margin-bottom: 16px;"></i>
+            <h3 style="font-size: 1.3rem; color: #374151;">No se encontraron productos</h3>
+            <p style="color: #6b7280;">Intentá con otra búsqueda o categoría</p>
           </div>
         `;
-        grid.appendChild(card);
-      });
+      }
     }
 
     // === LANDING ===
@@ -1618,11 +1776,14 @@
       const badges = document.getElementById("landingBadges");
       badges.innerHTML = "";
       const stock = safeStock(currentProduct);
+      const isBestSeller = BEST_SELLER_SKUS.includes(currentProduct.sku);
+      
       badges.innerHTML += currentProduct.isPlantilla
         ? `<div class="badge badge-accent">PLANTILLA</div>`
         : `<div class="badge badge-primary">${(currentProduct.category || "producto").toUpperCase()}</div>`;
       if (stock) badges.innerHTML += `<div class="badge badge-stock">Últimas ${stock} unidades</div>`;
       badges.innerHTML += `<div class="badge badge-off">10% OFF desde 2</div>`;
+      if (isBestSeller) badges.innerHTML += `<div class="badge badge-bestseller">⭐ MÁS VENDIDO</div>`;
 
       const benefitsGrid = document.getElementById("landingBenefits");
       benefitsGrid.innerHTML = "";
