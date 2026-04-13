@@ -142,6 +142,12 @@
     .badge-accent{background:var(--gradient-accent)}
     .badge-stock{background:linear-gradient(135deg,#f59e0b,#ef4444)}
     .badge-off{background:linear-gradient(135deg,#16a34a,#22c55e)}
+    .badge-bestseller{background:linear-gradient(135deg,#f59e0b,#dc2626);animation:pulse 2s infinite}
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
 
     .share-btn-elegant{
       position:absolute;top:14px;left:14px;
@@ -204,6 +210,64 @@
     .btn-whatsapp-pro:active{transform:translateY(-1px) scale(.98)}
     .btn-whatsapp-pro i{font-size:1.45rem;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.18))}
 
+    /* SECCIÓN MÁS VENDIDOS */
+    .best-seller-section {
+      animation: fadeSlideUp 0.6s ease-out;
+      margin-bottom: 48px;
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .best-seller-section .product-card-elegant {
+      border: 2px solid transparent;
+      background: linear-gradient(white, white) padding-box,
+                  linear-gradient(135deg, #f59e0b, #dc2626, #f59e0b, #22c55e) border-box;
+      animation: borderGlow 4s ease infinite;
+      background-size: 300% 200%;
+    }
+
+    @keyframes borderGlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .section-header .accent-bar {
+      width: 6px;
+      height: 42px;
+      border-radius: 6px;
+    }
+    .section-header h2 {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-header .divider {
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, #e5e7eb, transparent);
+    }
+
+    /* FOOTER */
     .footer-elegant{
       text-align:center;padding:40px 0;color:var(--gray);
       margin-top:60px;border-top:1px solid var(--border)
@@ -646,6 +710,7 @@
       .brand-logo-one{height:76px;max-width:210px}
       .header-content{padding:36px 18px}
       .cart-floating{bottom:18px;right:18px}
+      .section-header h2{font-size:1.4rem}
     }
     @media(max-width:480px){
       .products-grid{grid-template-columns:1fr}
@@ -656,6 +721,7 @@
       .landing-price{font-size:2.3rem}
       .benefits-box,.landing-description,.landing-features{padding:18px}
       .modal-content-elegant{max-height:94vh}
+      .section-header h2{font-size:1.2rem}
     }
     @media(min-width:900px){
       .modal-elegant{align-items:center;padding:20px}
@@ -715,7 +781,7 @@
         <div class="product-counter" id="productCounter">Cargando productos...</div>
       </div>
 
-      <div class="products-grid" id="productsGrid"></div>
+      <div id="productsGrid"></div>
 
       <footer class="footer-elegant">
         <div class="footer-links">
@@ -936,6 +1002,14 @@
       standard: { label: "ESTÁNDAR (2-4 días) - Gratis", cost: 0 },
       express:  { label: "EXPRESS 24 horas - 10.000 Gs (Solo Asunción y Central)", cost: 10000 }
     };
+
+    // SKUs de productos más vendidos (aparecerán primero en sección destacada)
+    const BEST_SELLER_SKUS = [
+      "PLANTILLA ORTOPÉDICA | ORTOPIEX 5D® - 001",
+      "SOPORTE ANTIVIBRACIÓN Y NIVELADORAS X 4 - 005",
+      "Afilador de Cuchillos y Tijeras🔪✂️ - 007",
+      "PROCESADOR DE ALIMENTOS - PREMIUM RAF PRO® - 040"
+    ];
 
     // === PRODUCTOS ===
     const products = [
@@ -1478,7 +1552,6 @@
         description: "Cinta facial V-Shaped para lifting facial instantáneo. Mejora contorno facial y reduce apariencia de arrugas.",
         features: ["Material hipoalergénico","Adhesivo médico","Invisible bajo maquillaje","Uso diario/noche","Paquete 30 unidades","Instrucciones aplicación"]
       },
-      // ✅ NUEVO PRODUCTO AGREGADO
       {
         title: "PROCESADOR DE ALIMENTOS - PREMIUM RAF PRO®",
         sku: "PROCESADOR DE ALIMENTOS - PREMIUM RAF PRO® - 040",
@@ -1538,7 +1611,53 @@
       ];
     }
 
-    // === RENDER CATÁLOGO ===
+    // Función para crear tarjeta de producto
+    function createProductCard(product, index){
+      const card = document.createElement("div");
+      card.className = "product-card-elegant";
+      const stock = safeStock(product);
+      const isBestSeller = BEST_SELLER_SKUS.includes(product.sku);
+      
+      card.innerHTML = `
+        <button class="share-btn-elegant" title="Compartir" onclick="shareProduct(${index})">
+          <i class="fas fa-share-alt"></i>
+        </button>
+
+        <div class="product-badges">
+          ${
+            product.isPlantilla
+              ? `<div class="badge badge-accent">PLANTILLA</div>`
+              : `<div class="badge badge-primary">${(product.category || "producto").toUpperCase()}</div>`
+          }
+          ${stock ? `<div class="badge badge-stock">Últimas ${stock} u.</div>` : ``}
+          <div class="badge badge-off">10% OFF 2+</div>
+          ${isBestSeller ? `<div class="badge badge-bestseller">⭐ MÁS VENDIDO</div>` : ``}
+        </div>
+
+        <div class="product-image-container">
+          <img src="${product.image_url}" alt="${product.title}" class="product-image"
+               onerror="this.src='https://via.placeholder.com/400x300?text=Producto'">
+        </div>
+
+        <div class="product-info-elegant">
+          <h3 class="product-title">${product.title}</h3>
+          <p class="product-sku">${product.sku}</p>
+          <div class="product-price">${formatPrice(product.price)}</div>
+
+          <div style="margin-top:10px;">
+            <button class="btn-view-details" onclick="viewProduct(${index})">
+              <i class="fas fa-eye"></i> Ver Producto
+            </button>
+            <button class="btn-whatsapp-pro" onclick="buyProduct(${index})">
+              <i class="fab fa-whatsapp"></i> COMPRAR POR WHATSAPP
+            </button>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    // === RENDER CATÁLOGO CON SECCIÓN MÁS VENDIDOS ===
     function loadProducts(){
       const grid = document.getElementById("productsGrid");
       const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
@@ -1546,7 +1665,8 @@
 
       grid.innerHTML = "";
 
-      const filtered = products.filter(p=>{
+      // Filtrar productos según búsqueda y categoría
+      let filtered = products.filter(p=>{
         const matchesSearch =
           !searchTerm ||
           p.title.toLowerCase().includes(searchTerm) ||
@@ -1557,52 +1677,92 @@
         return matchesSearch && matchesFilter;
       });
 
+      // Separar los más vendidos del resto
+      const bestSellers = [];
+      const restProducts = [];
+
+      for (let i = 0; i < filtered.length; i++) {
+        const product = filtered[i];
+        if (BEST_SELLER_SKUS.includes(product.sku)) {
+          bestSellers.push(product);
+        } else {
+          restProducts.push(product);
+        }
+      }
+
       document.getElementById("productCounter").textContent =
         `Mostrando ${filtered.length} de ${products.length} productos`;
 
-      filtered.forEach((product) => {
-        const index = products.indexOf(product);
-        const stock = safeStock(product);
-
-        const card = document.createElement("div");
-        card.className = "product-card-elegant";
-        card.innerHTML = `
-          <button class="share-btn-elegant" title="Compartir" onclick="shareProduct(${index})">
-            <i class="fas fa-share-alt"></i>
-          </button>
-
-          <div class="product-badges">
-            ${
-              product.isPlantilla
-                ? `<div class="badge badge-accent">PLANTILLA</div>`
-                : `<div class="badge badge-primary">${(product.category || "producto").toUpperCase()}</div>`
-            }
-            ${stock ? `<div class="badge badge-stock">Últimas ${stock} u.</div>` : ``}
-            <div class="badge badge-off">10% OFF 2+</div>
+      // ========== SECCIÓN MÁS VENDIDOS ==========
+      const showBestSellerSection = bestSellers.length > 0 && !searchTerm && activeFilter === "all";
+      
+      if (showBestSellerSection) {
+        const bestSellerSection = document.createElement("div");
+        bestSellerSection.className = "best-seller-section";
+        
+        bestSellerSection.innerHTML = `
+          <div class="section-header">
+            <div class="accent-bar" style="background: linear-gradient(135deg, #f59e0b, #dc2626);"></div>
+            <h2>
+              <i class="fas fa-crown" style="color: #f59e0b;"></i> 
+              Los Más Vendidos 🔥
+            </h2>
+            <div class="divider"></div>
           </div>
+          <div class="products-grid" id="bestSellersGrid"></div>
+        `;
+        
+        grid.appendChild(bestSellerSection);
+        
+        const bestGrid = bestSellerSection.querySelector("#bestSellersGrid");
+        for (let i = 0; i < bestSellers.length; i++) {
+          const product = bestSellers[i];
+          const index = products.findIndex(p => p.sku === product.sku);
+          const card = createProductCard(product, index);
+          bestGrid.appendChild(card);
+        }
+      }
 
-          <div class="product-image-container">
-            <img src="${product.image_url}" alt="${product.title}" class="product-image"
-                 onerror="this.src='https://via.placeholder.com/400x300?text=Producto'">
-          </div>
-
-          <div class="product-info-elegant">
-            <h3 class="product-title">${product.title}</h3>
-            <p class="product-sku">${product.sku}</p>
-            <div class="product-price">${formatPrice(product.price)}</div>
-
-            <div style="margin-top:10px;">
-              <button class="btn-view-details" onclick="viewProduct(${index})">
-                <i class="fas fa-eye"></i> Ver Producto
-              </button>
-              <button class="btn-whatsapp-pro" onclick="buyProduct(${index})">
-                <i class="fab fa-whatsapp"></i> COMPRAR POR WHATSAPP
-              </button>
+      // ========== RESTO DE PRODUCTOS ==========
+      if (restProducts.length > 0) {
+        if (showBestSellerSection) {
+          const restTitle = document.createElement("div");
+          restTitle.style.marginTop = "30px";
+          restTitle.style.marginBottom = "20px";
+          restTitle.innerHTML = `
+            <div class="section-header">
+              <div class="accent-bar" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);"></div>
+              <h2>
+                <i class="fas fa-store"></i> Todos los Productos
+              </h2>
+              <div class="divider"></div>
             </div>
+          `;
+          grid.appendChild(restTitle);
+        }
+        
+        const restGrid = document.createElement("div");
+        restGrid.className = "products-grid";
+        grid.appendChild(restGrid);
+        
+        for (let i = 0; i < restProducts.length; i++) {
+          const product = restProducts[i];
+          const index = products.findIndex(p => p.sku === product.sku);
+          const card = createProductCard(product, index);
+          restGrid.appendChild(card);
+        }
+      }
+      
+      // Si no hay resultados
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="text-align: center; padding: 60px; background: #fff; border-radius: 20px;">
+            <i class="fas fa-search" style="font-size: 48px; color: #9ca3af; margin-bottom: 16px;"></i>
+            <h3 style="font-size: 1.3rem; color: #374151;">No se encontraron productos</h3>
+            <p style="color: #6b7280;">Intentá con otra búsqueda o categoría</p>
           </div>
         `;
-        grid.appendChild(card);
-      });
+      }
     }
 
     // === LANDING ===
@@ -1618,15 +1778,22 @@
       const badges = document.getElementById("landingBadges");
       badges.innerHTML = "";
       const stock = safeStock(currentProduct);
-      badges.innerHTML += currentProduct.isPlantilla
-        ? `<div class="badge badge-accent">PLANTILLA</div>`
-        : `<div class="badge badge-primary">${(currentProduct.category || "producto").toUpperCase()}</div>`;
+      const isBestSeller = BEST_SELLER_SKUS.includes(currentProduct.sku);
+      
+      if (currentProduct.isPlantilla){
+        badges.innerHTML += `<div class="badge badge-accent">PLANTILLA</div>`;
+      } else {
+        badges.innerHTML += `<div class="badge badge-primary">${(currentProduct.category || "producto").toUpperCase()}</div>`;
+      }
       if (stock) badges.innerHTML += `<div class="badge badge-stock">Últimas ${stock} unidades</div>`;
       badges.innerHTML += `<div class="badge badge-off">10% OFF desde 2</div>`;
+      if (isBestSeller) badges.innerHTML += `<div class="badge badge-bestseller">⭐ MÁS VENDIDO</div>`;
 
       const benefitsGrid = document.getElementById("landingBenefits");
       benefitsGrid.innerHTML = "";
-      getBenefitsFromProduct(currentProduct).forEach(b=>{
+      const benefits = getBenefitsFromProduct(currentProduct);
+      for (let i = 0; i < benefits.length; i++) {
+        const b = benefits[i];
         const el = document.createElement("div");
         el.className = "benefit-card";
         el.innerHTML = `
@@ -1637,11 +1804,13 @@
           </div>
         `;
         benefitsGrid.appendChild(el);
-      });
+      }
 
       const featuresGrid = document.getElementById("landingFeatures");
       featuresGrid.innerHTML = "";
-      (currentProduct.features || []).forEach(f=>{
+      const features = currentProduct.features || [];
+      for (let i = 0; i < features.length; i++) {
+        const f = features[i];
         const el = document.createElement("div");
         el.className = "feature-card";
         el.innerHTML = `
@@ -1652,7 +1821,7 @@
           </div>
         `;
         featuresGrid.appendChild(el);
-      });
+      }
 
       document.getElementById("mainCatalog").style.display = "none";
       document.getElementById("productLanding").classList.add("active");
@@ -1704,23 +1873,18 @@
         card.className = "offer-card" + (q === 1 ? " active" : "");
         card.dataset.qty = String(q);
 
-        const tag =
-          q === 1 ? `<div class="offer-tag green">Oferta del día</div>` :
-          q === 2 ? `<div class="offer-tag blue">DESCUENTO x2</div>` :
-          q === 3 ? `<div class="offer-tag blue">DESCUENTO x3</div>` :
-                   `<div class="offer-tag blue">DESCUENTO x4</div>`;
+        let tag = "";
+        if (q === 1) tag = `<div class="offer-tag green">Oferta del día</div>`;
+        else if (q === 2) tag = `<div class="offer-tag blue">DESCUENTO x2</div>`;
+        else if (q === 3) tag = `<div class="offer-tag blue">DESCUENTO x3</div>`;
+        else tag = `<div class="offer-tag blue">DESCUENTO x4</div>`;
 
-        const title =
-          q === 1 ? `Compra 1 unidad` : `Promo x${q} (10% OFF)`;
+        const title = q === 1 ? `Compra 1 unidad` : `Promo x${q} (10% OFF)`;
+        const sub = q === 1 ? `Perfecto si querés probar primero.` : `Ahorrás ${formatPrice(disc)} comprando ${q} unidades.`;
 
-        const sub =
-          q === 1 ? `Perfecto si querés probar primero.` :
-          `Ahorrás ${formatPrice(disc)} comprando ${q} unidades.`;
-
-        const priceHtml =
-          q === 1
-            ? `<span class="now">${formatPrice(total)}</span>`
-            : `<span class="was">${formatPrice(subtotal)}</span><span class="now">${formatPrice(total)}</span>`;
+        const priceHtml = q === 1
+          ? `<span class="now">${formatPrice(total)}</span>`
+          : `<span class="was">${formatPrice(subtotal)}</span><span class="now">${formatPrice(total)}</span>`;
 
         card.innerHTML = `
           <div class="offer-radio"></div>
@@ -1734,13 +1898,18 @@
           </div>
         `;
 
-        card.addEventListener("click", ()=>{
-          document.querySelectorAll(".offer-card").forEach(x=>x.classList.remove("active"));
-          card.classList.add("active");
-          quantity = Number(card.dataset.qty || 1);
-          rebuildSizeSelectors();
-          updateOrderSummary();
-        });
+        card.addEventListener("click", (function(qty){
+          return function(){
+            const cards = document.querySelectorAll(".offer-card");
+            for (let j = 0; j < cards.length; j++) {
+              cards[j].classList.remove("active");
+            }
+            card.classList.add("active");
+            quantity = qty;
+            rebuildSizeSelectors();
+            updateOrderSummary();
+          };
+        })(q));
 
         offerGrid.appendChild(card);
       }
@@ -1748,8 +1917,12 @@
 
     function setShipping(method){
       shippingMethod = method;
-      document.querySelectorAll(".ship-card").forEach(c=>c.classList.remove("active"));
-      document.querySelector(`.ship-card[data-ship="${method}"]`)?.classList.add("active");
+      const cards = document.querySelectorAll(".ship-card");
+      for (let i = 0; i < cards.length; i++) {
+        cards[i].classList.remove("active");
+      }
+      const activeCard = document.querySelector(`.ship-card[data-ship="${method}"]`);
+      if (activeCard) activeCard.classList.add("active");
       updateOrderSummary();
     }
 
@@ -1760,7 +1933,7 @@
       opt0.textContent = allowEmpty ? "Seleccionar (opcional)" : "Seleccionar calce";
       selectEl.appendChild(opt0);
 
-      for (let i=35;i<=45;i++){
+      for (let i = 35; i <= 45; i++){
         const o = document.createElement("option");
         o.value = String(i);
         o.textContent = String(i);
@@ -1772,7 +1945,7 @@
       const section = document.getElementById("sizeSection");
       const list = document.getElementById("sizeList");
 
-      if (!currentProduct?.isPlantilla){
+      if (!currentProduct || !currentProduct.isPlantilla){
         section.style.display = "none";
         list.innerHTML = "";
         plantillaSizes = [];
@@ -1781,15 +1954,14 @@
 
       section.style.display = "block";
 
-      const prev = Array.isArray(plantillaSizes) ? [...plantillaSizes] : [];
-      plantillaSizes = new Array(quantity).fill("");
-
-      for (let i=0;i<quantity;i++){
+      const prev = plantillaSizes.length ? [...plantillaSizes] : [];
+      plantillaSizes = new Array(quantity);
+      for (let i = 0; i < quantity; i++){
         plantillaSizes[i] = prev[i] || "";
       }
 
       list.innerHTML = "";
-      for (let i=0;i<quantity;i++){
+      for (let i = 0; i < quantity; i++){
         const wrapper = document.createElement("div");
         wrapper.className = "form-group";
 
@@ -1803,7 +1975,7 @@
 
         const ico = document.createElement("div");
         ico.className = "select-ico";
-        ico.innerHTML = `<i class="fas fa-${i+1}"></i>`;
+        ico.innerHTML = `<i class="fas fa-${(i+1) % 10}"></i>`;
 
         const sel = document.createElement("select");
         sel.id = `size_${i}`;
@@ -1811,10 +1983,12 @@
 
         sel.value = plantillaSizes[i];
 
-        sel.addEventListener("change", ()=>{
-          plantillaSizes[i] = sel.value;
-          updateOrderSummary();
-        });
+        sel.addEventListener("change", (function(idx){
+          return function(){
+            plantillaSizes[idx] = sel.value;
+            updateOrderSummary();
+          };
+        })(i));
 
         row.appendChild(ico);
         row.appendChild(sel);
@@ -1837,10 +2011,10 @@
     }
 
     function getResolvedPlantillaSizes(){
-      const first = plantillaSizes?.[0] ? Number(plantillaSizes[0]) : 37;
+      const first = plantillaSizes && plantillaSizes[0] ? Number(plantillaSizes[0]) : 37;
       const arr = [];
-      for (let i=0;i<quantity;i++){
-        const val = plantillaSizes?.[i] ? Number(plantillaSizes[i]) : first;
+      for (let i = 0; i < quantity; i++){
+        const val = plantillaSizes && plantillaSizes[i] ? Number(plantillaSizes[i]) : first;
         arr.push(val);
       }
       return arr;
@@ -1878,7 +2052,8 @@
       const required = ["customerName","customerPhone","customerCity","customerDistrict","customerAddress"];
       let ok = true;
 
-      required.forEach(id=>{
+      for (let i = 0; i < required.length; i++) {
+        const id = required[i];
         const el = document.getElementById(id);
         const wrap = document.getElementById("wrap_" + id);
         const empty = !el.value.trim();
@@ -1888,16 +2063,16 @@
         } else {
           wrap.classList.remove("error");
         }
-      });
+      }
 
-      if (currentProduct?.isPlantilla){
+      if (currentProduct && currentProduct.isPlantilla){
         const first = document.getElementById("size_0");
         const wrap = document.getElementById("wrap_size_0");
-        if (!String(first.value || "").trim()){
-          wrap.classList.add("error");
+        if (!first || !String(first.value || "").trim()){
+          if (wrap) wrap.classList.add("error");
           ok = false;
         } else {
-          wrap.classList.remove("error");
+          if (wrap) wrap.classList.remove("error");
         }
       }
 
@@ -1926,7 +2101,9 @@
 
       if (currentProduct.isPlantilla){
         const sizes = getResolvedPlantillaSizes();
-        sizes.forEach((s, i)=>{ msg += `👟 *Calce Par ${i+1}:* ${s}\n`; });
+        for (let i = 0; i < sizes.length; i++){
+          msg += `👟 *Calce Par ${i+1}:* ${sizes[i]}\n`;
+        }
       }
 
       msg += `💰 *Precio unitario:* ${formatPrice(unitPrice)}\n`;
@@ -1956,7 +2133,7 @@
       }
 
       if (currentProduct.isPlantilla){
-        const first = plantillaSizes?.[0];
+        const first = plantillaSizes && plantillaSizes[0];
         if (!first){
           alert("Por favor, seleccione el calce del primer par.");
           return;
@@ -2010,39 +2187,46 @@
     }
 
     // === EVENTOS UI ===
-    document.addEventListener("DOMContentLoaded", ()=>{
+    document.addEventListener("DOMContentLoaded", function(){
       loadProducts();
       handleSkuLanding();
 
-      document.querySelectorAll(".filter-chip").forEach(chip=>{
-        chip.addEventListener("click", ()=>{
-          document.querySelectorAll(".filter-chip").forEach(c=>c.classList.remove("active"));
+      const filterChips = document.querySelectorAll(".filter-chip");
+      for (let i = 0; i < filterChips.length; i++) {
+        const chip = filterChips[i];
+        chip.addEventListener("click", function(){
+          const currentActive = document.querySelectorAll(".filter-chip");
+          for (let j = 0; j < currentActive.length; j++) {
+            currentActive[j].classList.remove("active");
+          }
           chip.classList.add("active");
           loadProducts();
         });
+      }
+
+      document.getElementById("searchInput").addEventListener("input", function(){
+        loadProducts();
       });
 
-      document.getElementById("searchInput").addEventListener("input", ()=>loadProducts());
-
-      document.getElementById("backToCatalog").addEventListener("click", ()=>{
+      document.getElementById("backToCatalog").addEventListener("click", function(){
         document.getElementById("productLanding").classList.remove("active");
         document.getElementById("mainCatalog").style.display = "block";
         history.pushState({}, "", location.pathname);
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
 
-      document.getElementById("landingBuyButton").addEventListener("click", ()=>{
+      document.getElementById("landingBuyButton").addEventListener("click", function(){
         if (!currentProduct) return;
         const idx = products.findIndex(p=>p.sku === currentProduct.sku);
         buyProduct(idx);
       });
 
       document.getElementById("closeModal").addEventListener("click", closeModal);
-      document.getElementById("purchaseModal").addEventListener("click", (e)=>{
+      document.getElementById("purchaseModal").addEventListener("click", function(e){
         if (e.target.id === "purchaseModal") closeModal();
       });
 
-      document.getElementById("shipGrid").addEventListener("click", (e)=>{
+      document.getElementById("shipGrid").addEventListener("click", function(e){
         const card = e.target.closest(".ship-card");
         if (!card) return;
         const method = card.dataset.ship;
@@ -2052,12 +2236,12 @@
 
       document.getElementById("whatsappButton").addEventListener("click", sendWhatsAppOrder);
 
-      document.getElementById("cartButton").addEventListener("click", ()=>{
+      document.getElementById("cartButton").addEventListener("click", function(){
         alert("Carrito: función opcional. Si querés, te lo activo con listado + sumatoria ✅");
       });
     });
 
-    window.addEventListener("popstate", ()=>{
+    window.addEventListener("popstate", function(){
       const params = new URLSearchParams(location.search);
       if (params.get("sku")){
         handleSkuLanding();
