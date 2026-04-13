@@ -400,7 +400,7 @@
     .close-modal-elegant:hover{background:rgba(255,255,255,0.28);transform:rotate(90deg)}
 
     .modal-body{
-      padding:14px 14px 0; /* 👈 sin padding abajo para que la "tira" sea continuidad */
+      padding:14px 14px 0;
       background:#f8fafc;
       overflow:auto;
       -webkit-overflow-scrolling:touch;
@@ -579,9 +579,9 @@
     }
     .select-row.error{border-color:rgba(231,76,60,.9);box-shadow:0 0 0 4px rgba(231,76,60,0.12)}
 
-    /* ✅ "TIRA" FINAL (NO FIJA) - continuidad */
+    /* CHECKOUT STRIP */
     .checkout-strip{
-      margin: 0 -14px;              /* ocupa todo el ancho del modal */
+      margin: 0 -14px;
       padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
       background: linear-gradient(180deg, rgba(248,250,252,0.0) 0%, rgba(248,250,252,1) 18%, rgba(248,250,252,1) 100%);
       border-top: 1px solid var(--border);
@@ -901,7 +901,7 @@
           </div>
         </div>
 
-        <!-- ✅ TIRA FINAL (NO FIJA, CONTINUA) -->
+        <!-- CHECKOUT STRIP -->
         <div class="checkout-strip">
           <div class="summary-box">
             <div class="sum-row muted"><span>Subtotal</span><span id="subtotalAmount">0 Gs</span></div>
@@ -937,7 +937,7 @@
       express:  { label: "EXPRESS 24 horas - 10.000 Gs (Solo Asunción y Central)", cost: 10000 }
     };
 
-    // === PRODUCTOS (tu lista completa) ===
+    // === PRODUCTOS ===
     const products = [
       {
         title: "PLANTILLA ORTOPÉDICA | ORTOPIEX 5D®",
@@ -1477,6 +1477,27 @@
         stock: 8,
         description: "Cinta facial V-Shaped para lifting facial instantáneo. Mejora contorno facial y reduce apariencia de arrugas.",
         features: ["Material hipoalergénico","Adhesivo médico","Invisible bajo maquillaje","Uso diario/noche","Paquete 30 unidades","Instrucciones aplicación"]
+      },
+      // ✅ NUEVO PRODUCTO AGREGADO
+      {
+        title: "PROCESADOR DE ALIMENTOS - PREMIUM RAF PRO®",
+        sku: "PROCESADOR DE ALIMENTOS - PREMIUM RAF PRO® - 040",
+        price: 189900,
+        image_url: "https://mnpbwoknqwsjtiyrrxbm.supabase.co/storage/v1/object/public/product-images/1775793607798-clifago9kjv.png",
+        isPlantilla: false,
+        category: "hogar",
+        stock: 8,
+        description: "Procesador de alimentos profesional RAF PRO® con múltiples funciones. Ideal para picar, licuar, batir y mezclar ingredientes de forma rápida y eficiente. Diseño premium con cuchillas de acero inoxidable y múltiples velocidades.",
+        features: [
+          "Motor de alta potencia 800W",
+          "Vaso de vidrio templado 1.5L",
+          "Cuchillas de acero inoxidable 4 hojas",
+          "2 velocidades + función pulso",
+          "Sistema de seguridad de enclavamiento",
+          "Base antideslizante con ventosas",
+          "Fácil limpieza (piezas removibles)",
+          "Incluye accesorios: disco rallador/rebana"
+        ]
       }
     ];
 
@@ -1484,7 +1505,7 @@
     let currentProduct = null;
     let quantity = 1;
     let shippingMethod = "standard";
-    let plantillaSizes = []; // tamaño por par (index 0..qty-1)
+    let plantillaSizes = [];
 
     // === UTILS ===
     function formatPrice(price){
@@ -1673,7 +1694,7 @@
       const offerGrid = document.getElementById("offerGrid");
       offerGrid.innerHTML = "";
 
-      const maxQty = 4; // ✅ hasta 4
+      const maxQty = 4;
       for (let q = 1; q <= maxQty; q++){
         const subtotal = currentProduct.price * q;
         const disc = calcDiscount(subtotal, q);
@@ -1747,7 +1768,6 @@
       }
     }
 
-    // ✅ ahora genera N selects (hasta 4) para plantillas
     function rebuildSizeSelectors(){
       const section = document.getElementById("sizeSection");
       const list = document.getElementById("sizeList");
@@ -1761,7 +1781,6 @@
 
       section.style.display = "block";
 
-      // conservar lo ya elegido si existía
       const prev = Array.isArray(plantillaSizes) ? [...plantillaSizes] : [];
       plantillaSizes = new Array(quantity).fill("");
 
@@ -1790,7 +1809,6 @@
         sel.id = `size_${i}`;
         fillSizeOptions(sel, i !== 0);
 
-        // defaults: si no elige, usa el del primero; si el primero no existe, 37
         sel.value = plantillaSizes[i];
 
         sel.addEventListener("change", ()=>{
