@@ -128,26 +128,7 @@
     }
     .product-card-elegant:hover .product-image{transform:scale(1.08)}
 
-    .product-badges{
-      position:absolute;top:14px;right:14px;
-      display:flex;flex-direction:column;gap:8px;z-index:2
-    }
-    .badge{
-      padding:6px 12px;border-radius:20px;
-      font-size:.75rem;font-weight:900;color:#fff;
-      text-transform:uppercase;letter-spacing:.5px;
-      box-shadow:0 3px 8px rgba(0,0,0,.15)
-    }
-    .badge-primary{background:var(--gradient-secondary)}
-    .badge-accent{background:var(--gradient-accent)}
-    .badge-stock{background:linear-gradient(135deg,#f59e0b,#ef4444)}
-    .badge-off{background:linear-gradient(135deg,#16a34a,#22c55e)}
-    .badge-bestseller{background:linear-gradient(135deg,#f59e0b,#dc2626);animation:pulse 2s infinite}
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.85; transform: scale(1.02); }
-    }
+    /* ETIQUETAS ELIMINADAS - Ya no hay product-badges */
 
     .share-btn-elegant{
       position:absolute;top:14px;left:14px;
@@ -308,10 +289,9 @@
     }
     .landing-image{max-width:100%;max-height:420px;object-fit:contain}
 
+    /* Badges de landing eliminados */
     .landing-floating-badges{
-      position:absolute;top:14px;left:14px;
-      display:flex;flex-direction:column;gap:8px;
-      z-index:2;
+      display: none;
     }
     .landing-info{display:flex;flex-direction:column}
     .landing-title{
@@ -1611,28 +1591,15 @@
       ];
     }
 
-    // Función para crear tarjeta de producto
+    // Función para crear tarjeta de producto (SIN ETIQUETAS)
     function createProductCard(product, index){
       const card = document.createElement("div");
       card.className = "product-card-elegant";
-      const stock = safeStock(product);
-      const isBestSeller = BEST_SELLER_SKUS.includes(product.sku);
       
       card.innerHTML = `
         <button class="share-btn-elegant" title="Compartir" onclick="shareProduct(${index})">
           <i class="fas fa-share-alt"></i>
         </button>
-
-        <div class="product-badges">
-          ${
-            product.isPlantilla
-              ? `<div class="badge badge-accent">PLANTILLA</div>`
-              : `<div class="badge badge-primary">${(product.category || "producto").toUpperCase()}</div>`
-          }
-          ${stock ? `<div class="badge badge-stock">Últimas ${stock} u.</div>` : ``}
-          <div class="badge badge-off">10% OFF 2+</div>
-          ${isBestSeller ? `<div class="badge badge-bestseller">⭐ MÁS VENDIDO</div>` : ``}
-        </div>
 
         <div class="product-image-container">
           <img src="${product.image_url}" alt="${product.title}" class="product-image"
@@ -1775,19 +1742,9 @@
       document.getElementById("landingProductPrice").textContent = formatPrice(currentProduct.price);
       document.getElementById("landingProductDescription").textContent = currentProduct.description || "";
 
+      // Limpiar badges de landing (ya no se muestran)
       const badges = document.getElementById("landingBadges");
       badges.innerHTML = "";
-      const stock = safeStock(currentProduct);
-      const isBestSeller = BEST_SELLER_SKUS.includes(currentProduct.sku);
-      
-      if (currentProduct.isPlantilla){
-        badges.innerHTML += `<div class="badge badge-accent">PLANTILLA</div>`;
-      } else {
-        badges.innerHTML += `<div class="badge badge-primary">${(currentProduct.category || "producto").toUpperCase()}</div>`;
-      }
-      if (stock) badges.innerHTML += `<div class="badge badge-stock">Últimas ${stock} unidades</div>`;
-      badges.innerHTML += `<div class="badge badge-off">10% OFF desde 2</div>`;
-      if (isBestSeller) badges.innerHTML += `<div class="badge badge-bestseller">⭐ MÁS VENDIDO</div>`;
 
       const benefitsGrid = document.getElementById("landingBenefits");
       benefitsGrid.innerHTML = "";
